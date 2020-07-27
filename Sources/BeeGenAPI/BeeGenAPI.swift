@@ -61,6 +61,11 @@ public struct GenModel {
 
 public struct GenObject {
     
+    public let id : Int64
+    public let objType: Int64
+    public let objMnemonic: String
+    public let name: String
+    
     fileprivate let connection: Connection
     
      // Create table GenObjects
@@ -79,11 +84,6 @@ public struct GenObject {
     let ascMnemonicColumn = Expression<String>("ascMnemonic")
     let cardColumn = Expression<String?>("card")
     let directionColumn = Expression<String?>("direction")
-    
-    let id : Int64
-    let objType: Int64
-    let objMnemonic: String
-    let name: String
     
     public  init(connection: Connection, id: Int64, objType: Int64, objMnemonic: String, name: String) {
         self.connection = connection
@@ -127,7 +127,7 @@ public struct GenObject {
 }
 
 
-enum GenAPIException : Error {
+public enum GenAPIException : Error {
     
     case someProblemAccessingModel(description: String)
     case unexpectedDublicateFound(objid: Int64, objType: ObjTypeCode, name: String)
@@ -136,19 +136,10 @@ enum GenAPIException : Error {
     
 }
 
-enum Cardinality: String {
+public enum Cardinality: String {
     
     case many = "M"
     case one = "1"
     
 }
-
-
-
-
-
-
-
-
-
 
