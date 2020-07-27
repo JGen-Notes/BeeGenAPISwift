@@ -1,3 +1,3 @@
 # BeeGenAPI
 
-A description of this package.
+This API allowing to accessed exported CA Gen Model.
