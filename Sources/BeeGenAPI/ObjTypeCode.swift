@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ObjTypeCode : Int64 {
+public enum ObjTypeCode : Int64 {
     
     case CNDDF = 0
     case CNDUS = 1

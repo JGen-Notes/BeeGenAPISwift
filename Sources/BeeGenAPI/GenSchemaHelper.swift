@@ -6,7 +6,7 @@
 //
 
 
-enum PrpFormat {
+public enum PrpFormat {
     case ART
     case CHAR
     case INT

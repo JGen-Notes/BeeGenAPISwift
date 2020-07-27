@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum AscTypeCode : Int64 {
+public enum AscTypeCode : Int64 {
     
     case ACCMPLSH = 0
     case ACTDON = 3

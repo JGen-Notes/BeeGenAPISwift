@@ -8,7 +8,7 @@
 import Foundation
 
 
-enum PrpTypeCode : Int64 {
+public enum PrpTypeCode : Int64 {
 
     case ABBREV = 0
     case ACRONYM = 1
