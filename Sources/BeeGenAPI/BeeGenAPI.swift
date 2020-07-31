@@ -27,11 +27,13 @@
 import Foundation
 import SQLite
 
+/// This structure represents an entire Bee Gen Model in the memory provides a starting points
+/// for any navigation thru the contents of the model.
 public struct GenModel {
     
     fileprivate let connection: Connection
     
-    // Create table GenObjects
+   /// Create table definition for GenObject
    let genObjects = Table("GenObjects")
    let idColumn = Expression<Int64>("id")
    let objTypeColumn = Expression<Int64>("objType")
@@ -78,6 +80,8 @@ public struct GenModel {
     }
 }
 
+/// This structure represents an entire GenObject in the memory and provides
+/// a number of function helping extracting information about associations and properties.
 public struct GenObject {
     
     public let id : Int64
@@ -87,14 +91,14 @@ public struct GenObject {
     
     fileprivate let connection: Connection
     
-     // Create table GenObjects
+    /// Create table definition for GenObject
     let genObjects = Table("GenObjects")
     let idColumn = Expression<Int64>("id")
     let objTypeColumn = Expression<Int64>("objType")
     let objMnemonicColumn = Expression<String>("objMnemonic")
     let nameColumn = Expression<String>("name")
     
-    // Create table GenAssociations
+    /// Create table definition for GenAssociations
     let genAssociations = Table("GenAssociations")
     let fromObjidColumn = Expression<Int64>("fromObjid")
     let ascTypeColumn = Expression<Int64>("ascType")
@@ -104,7 +108,7 @@ public struct GenObject {
     let cardColumn = Expression<String?>("card")
     let directionColumn = Expression<String?>("direction")
     
-    // Create table GenProperties
+    /// Create table definition for GenProperties
     let genProperties = Table("GenProperties")
     let objidColumn = Expression<Int64>("objid")
     let prpTypeColumn = Expression<Int64>("prpType")
@@ -122,6 +126,13 @@ public struct GenObject {
         self.name = name
     }
     
+    /// Fetching associated objects associated with the itself.
+    ///
+    /// - Parameters:
+    ///
+    ///   - haveType: A type of association.
+    ///
+    /// - Returns: The array of objects associated with itself of the specified type.
     public func followAssociationMany(haveType: Int64) throws -> Array<GenObject> {
         var array = Array<GenObject>()
         for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType)) {
@@ -135,17 +146,20 @@ public struct GenObject {
          return array
     }
     
+    /// Fetching associated single object associated with the itself.
+    ///
+    /// - Parameters:
+    ///
+    ///   - haveType: A type of association.
+    ///
+    /// - Returns: The object associated with itself of the specified type or nil if not found.
     public func followAssociationOne(haveType: Int64) throws -> GenObject? {
-        
-      //  print("from: \(self.id), asc: \(haveType)")
-        
-        for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType)) {
+       for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType)) {
            // print("from: \(association)")
             //print(Cardinality.one.rawValue)
             if try association.get(cardColumn) != Cardinality.one.rawValue {
                 throw GenAPIException.associationNotCardinalityOne(objid: self.id, ascType: haveType)
             }
-         //   print("association")
             for object in try self.connection.prepare(genObjects.where(idColumn == association.get(toObjidColumn))) {
                 return GenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn))
             }
@@ -153,6 +167,10 @@ public struct GenObject {
         return nil
     }
     
+    /// Fetching  properties of itself.
+    ///
+    ///
+    /// - Returns: The array of property of itself.
     public func fetchProperties() throws -> Array<GenProperty> {
         var array = Array<GenProperty>()
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id)) {
@@ -161,6 +179,13 @@ public struct GenObject {
         return array
     }
     
+    /// Fetching specific single property of itself.
+    ///
+    /// - Parameters:
+    ///
+    ///   - haveType: A type of property.
+    ///
+    /// - Returns: The spefified property of itself or nil if not found.
     public func fetchProperty(haveType: Int64) throws -> GenProperty? {
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType)) {
             return GenProperty(connection: connection, objid: try property.get(objidColumn), prpType: try property.get(prpTypeColumn), prpMnemonic: try property.get(prpMnemonicColumn), format: try property.get(formatColumn), value: try property.get(valueColumn))
@@ -170,7 +195,9 @@ public struct GenObject {
      
 }
 
+/// This structure   contains all infromation about a single property.
 public struct GenProperty {
+    
     public let objid : Int64
     public let prpType: Int64
     public let prpMnemonic: String
@@ -179,13 +206,13 @@ public struct GenProperty {
     
     fileprivate let connection: Connection
     
-     // Create table GenProperties
-     let genProperties = Table("GenProperties")
-     let objidColumn = Expression<Int64>("objid")
-     let prpTypeColumn = Expression<Int64>("prpType")
-     let prpMnemonicColumn = Expression<String>("mnemonic")
-     let formatColumn = Expression<String>("format")
-     let valueColumn = Expression<String>("value")
+    /// Create table definition for GenProperties
+    let genProperties = Table("GenProperties")
+    let objidColumn = Expression<Int64>("objid")
+    let prpTypeColumn = Expression<Int64>("prpType")
+    let prpMnemonicColumn = Expression<String>("mnemonic")
+    let formatColumn = Expression<String>("format")
+    let valueColumn = Expression<String>("value")
     
     public  init(connection: Connection, objid: Int64, prpType: Int64, prpMnemonic: String, format: String, value: String) {
         self.connection = connection
@@ -197,17 +224,19 @@ public struct GenProperty {
     }
     
     public func getNumberValue() throws -> Int? {
-        
-        
-        
-        return nil
+        switch format {
+        case PrpFormat.INT.rawValue:
+            return Int(value)
+        case PrpFormat.SINT.rawValue:
+            return Int(value)
+        default:
+            throw GenAPIException.propertyNotNumber(objid: objid, prpType: prpType)
+        }
+       
     }
     
     public func getTextValue() throws -> String? {
-        
-        
-        
-        return nil
+        return value
     }
     
 }
@@ -219,7 +248,7 @@ public enum GenAPIException : Error {
     case unexpectedDublicateFound(objid: Int64, objType: ObjTypeCode, name: String)
     case associationNotCardinalityOne(objid: Int64, ascType: Int64)
     case associationNotCardinalityMany(objid: Int64, ascType: Int64)
-    case propertyNotNumber(objid: Int64, objType: Int64, prpType: Int64)
+    case propertyNotNumber(objid: Int64, prpType: Int64)
 }
 
 public enum Cardinality: String {

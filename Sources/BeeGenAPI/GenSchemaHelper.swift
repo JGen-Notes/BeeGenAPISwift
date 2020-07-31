@@ -25,7 +25,7 @@
 //
 
 
-public enum PrpFormat {
+public enum PrpFormat : String {
     case ART
     case CHAR
     case INT
