@@ -2,7 +2,26 @@
 //  BeeGenAPI.swift
 //
 //
-//  Created by Marek Stankiewicz on 23/07/2020.
+//  Created by Marek Stankiewicz on 06/07/2020.
+//  Copyright © 2020 JGen. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 //
 
 import Foundation
@@ -85,6 +104,16 @@ public struct GenObject {
     let cardColumn = Expression<String?>("card")
     let directionColumn = Expression<String?>("direction")
     
+    // Create table GenProperties
+    let genProperties = Table("GenProperties")
+    let objidColumn = Expression<Int64>("objid")
+    let prpTypeColumn = Expression<Int64>("prpType")
+    let prpMnemonicColumn = Expression<String>("mnemonic")
+    let formatColumn = Expression<String>("format")
+    let valueColumn = Expression<String>("value")
+    
+    
+    
     public  init(connection: Connection, id: Int64, objType: Int64, objMnemonic: String, name: String) {
         self.connection = connection
         self.id = id
@@ -123,7 +152,64 @@ public struct GenObject {
         }
         return nil
     }
+    
+    public func fetchProperties() throws -> Array<GenProperty> {
+        var array = Array<GenProperty>()
+        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id)) {
+            array.append(GenProperty(connection: connection, objid: try property.get(objidColumn), prpType: try property.get(prpTypeColumn), prpMnemonic: try property.get(prpMnemonicColumn), format: try property.get(formatColumn), value: try property.get(valueColumn)))
+        }
+        return array
+    }
+    
+    public func fetchProperty(haveType: Int64) throws -> GenProperty? {
+        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType)) {
+            return GenProperty(connection: connection, objid: try property.get(objidColumn), prpType: try property.get(prpTypeColumn), prpMnemonic: try property.get(prpMnemonicColumn), format: try property.get(formatColumn), value: try property.get(valueColumn))
+        }
+        return nil
+    }
      
+}
+
+public struct GenProperty {
+    public let objid : Int64
+    public let prpType: Int64
+    public let prpMnemonic: String
+    public let format: String
+    public let value: String
+    
+    fileprivate let connection: Connection
+    
+     // Create table GenProperties
+     let genProperties = Table("GenProperties")
+     let objidColumn = Expression<Int64>("objid")
+     let prpTypeColumn = Expression<Int64>("prpType")
+     let prpMnemonicColumn = Expression<String>("mnemonic")
+     let formatColumn = Expression<String>("format")
+     let valueColumn = Expression<String>("value")
+    
+    public  init(connection: Connection, objid: Int64, prpType: Int64, prpMnemonic: String, format: String, value: String) {
+        self.connection = connection
+        self.objid = objid
+        self.prpType = prpType
+        self.prpMnemonic = prpMnemonic
+        self.format = format
+        self.value = value
+    }
+    
+    public func getNumberValue() throws -> Int? {
+        
+        
+        
+        return nil
+    }
+    
+    public func getTextValue() throws -> String? {
+        
+        
+        
+        return nil
+    }
+    
 }
 
 
@@ -133,7 +219,7 @@ public enum GenAPIException : Error {
     case unexpectedDublicateFound(objid: Int64, objType: ObjTypeCode, name: String)
     case associationNotCardinalityOne(objid: Int64, ascType: Int64)
     case associationNotCardinalityMany(objid: Int64, ascType: Int64)
-    
+    case propertyNotNumber(objid: Int64, objType: Int64, prpType: Int64)
 }
 
 public enum Cardinality: String {
