@@ -107,6 +107,7 @@ public struct GenObject {
     let ascMnemonicColumn = Expression<String>("ascMnemonic")
     let cardColumn = Expression<String?>("card")
     let directionColumn = Expression<String?>("direction")
+    let seqnoColumn = Expression<String?>("seqno")
     
     /// Create table definition for GenProperties
     let genProperties = Table("GenProperties")
