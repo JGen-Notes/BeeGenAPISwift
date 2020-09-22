@@ -33,36 +33,25 @@ Example of use
 Here is an example of the Java program using the API.
 
 ```sh
-package eu.jgen.beegen.model.api.example;
-
-import eu.jgen.beegen.model.api.JGenContainer;
-import eu.jgen.beegen.model.api.JGenModel;
-import eu.jgen.beegen.model.api.JGenObject;
-import eu.jgen.beegen.model.meta.ObjMetaType;
-import eu.jgen.beegen.model.meta.PrpMetaType;
-
-public class ListAllActionBlockNames {
-
-	public static void main(String[] args) {
-		JGenContainer genContainer = new JGenContainer();
-		JGenModel genModel = genContainer.connect("/Users/Xxxxx/beegen01.ief/bee/BEEGEN01.db");
-		System.out.println("List of action blocks in the model: " + genModel.getName() + ", Using schema level: "
-				+ genModel.getSchema() + "\n");
-		for (JGenObject genObject : genModel.findTypeObjects(ObjMetaType.ACBLKBSD)) {
-			System.out.println("\tAction block name: " + genObject.findTextProperty(PrpMetaType.NAME) + ", having id: "
-					+ genObject.objId);
-		}
-		genContainer.disconnect();
-		System.out.println("\nCompleted.");
-	}
-
-}
+   func testSampleApplication() {
+        let containerPath = "/Users/Xxxxx/beegen01.ief/bee/BEEGEN01.db"
+        let genContainer = JGenContainer()
+        let genModel = genContainer.connect(to: containerPath)
+        print("List of action blocks in the model: " + genModel!.getName() + ", Using schema level: "
+                + genModel!.getSchema() + "\n")
+        for genObject in genModel!.findTypeObjects(haveType: ObjMetaType.ACBLKBSD) {
+            print("\tAction block name: " + genObject.findTextProperty(haveType: PrpMetaType.NAME) + ", having id: \(genObject.id)"
+            )
+        }
+        genContainer.disconnect();
+        print("\nCompleted.");
+    }
 ```
 
 It produces the following output:
 
 ```sh
-List of action blocks in the model: BEEGEN01, Using schema level: 9.2.A6
+List of action blocks in the model: BEEGEN01, Using schema level: BEEGEN01
 
 	Action block name: PERSON_CREATE, having id: 22020096
 	Action block name: PERSON_DELETE, having id: 22020097
