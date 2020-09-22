@@ -30,7 +30,7 @@ Versions of used Software
 Example of use
 ==============
 
-Here is an example of the Java program using the API.
+Here is an example of the Swift programming program using the API.
 
 ```sh
    func testSampleApplication() {
