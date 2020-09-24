@@ -26,7 +26,7 @@
 
 import Foundation
 
-public enum AscTypeCode : Int64 {
+public enum AscMetaType : Int64 {
     
     case ACCMPLSH = 0
     case ACTDON = 3

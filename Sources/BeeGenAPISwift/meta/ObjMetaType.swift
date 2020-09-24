@@ -26,7 +26,7 @@
 
 import Foundation
 
-public enum ObjTypeCode : Int64 {
+public enum ObjMetaType : Int64 {
     
     case CNDDF = 0
     case CNDUS = 1

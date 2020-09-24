@@ -1,7 +1,6 @@
 //
 //  BeeGenAPI.swift
 //
-//
 //  Created by Marek Stankiewicz on 06/07/2020.
 //  Copyright © 2020 JGen. All rights reserved.
 //
@@ -27,8 +26,7 @@
 import Foundation
 import SQLite
 
-/// This structure represents an entire Bee Gen Model in the memory provides a starting points
-/// for any navigation thru the contents of the model.
+
 public struct GenModel {
     
     fileprivate let connection: Connection
@@ -246,7 +244,7 @@ public struct GenProperty {
 public enum GenAPIException : Error {
     
     case someProblemAccessingModel(description: String)
-    case unexpectedDublicateFound(objid: Int64, objType: ObjTypeCode, name: String)
+    case unexpectedDublicateFound(objid: Int64, objType: ObjMetaType, name: String)
     case associationNotCardinalityOne(objid: Int64, ascType: Int64)
     case associationNotCardinalityMany(objid: Int64, ascType: Int64)
     case propertyNotNumber(objid: Int64, prpType: Int64)
