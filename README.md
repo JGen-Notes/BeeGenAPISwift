@@ -10,7 +10,7 @@ Bee Gen API for Swift is part of the Bee Gen Model Framework project. The framew
 
 A container uses SQLite as a means of storing and retrieving information. Therefore you need to have SQLite installed in your environment. Since SQLite and partly Swift are portable and can run on few supporting platforms, the framework and applications developed using the framework can be installed and run on all those supporting platforms.
 
-[Bee Gen API for Swift doumentation can be downloded here.](https://github.com/JGen-Notes/BeeGenAPIJava/blob/master/eu.jgen.beegen.model.api/BeeGenAPIDoc.zip)
+Bee Gen API for Swift doumentation is not extracted from the source codet yet and will be provided in near future.
 
 More about project you can find [here](http://www.jgen.eu/?p=900&preview=true).
 
