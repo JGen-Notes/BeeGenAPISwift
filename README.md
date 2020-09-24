@@ -23,6 +23,8 @@ Versions of used Software
 
 - [SQLite Release 3.33.0 On 2020-08-14](https://sqlite.org/index.html)
 
+- [SQLite.swift](https://github.com/stephencelis/SQLite.swift)
+
 - [Swift 5.3](https://swift.org)
 
 - [XCode 12](https://developer.apple.com/xcode/)
