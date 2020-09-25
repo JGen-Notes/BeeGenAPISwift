@@ -26,6 +26,8 @@
 
 import Foundation
 import SQLite
+import HeliumLogger
+import LoggerAPI
 
 ///
 ///
@@ -42,13 +44,7 @@ import SQLite
 ///
 public class JGenContainer {
     
-    public var connection: Connection?
-    
     public var containerLocation: String = ""
-    
-    private var genModel: JGenModel?
-    
-    public var meta: MetaHelper?
     
     public init() {
     }
@@ -60,37 +56,20 @@ public class JGenContainer {
     ///     - containerPath:  path to the SQLite database file
     /// - Returns: Object representing model or `nil` if connection was unsuccessful.
     ///
-    public func connect(to containerLocation: String) -> JGenModel? {
+    public func connect(to containerLocation: String) throws -> JGenModel {
         self.containerLocation = containerLocation
         do {
-            connection = try Connection(containerLocation )
-            self.genModel = JGenModel(containedin: self).retriveModelInfo()
-            self.meta = MetaHelper(genContainer: self)
+            let logger = HeliumLogger()
+            Log.logger = logger
+            let connection = try Connection(containerLocation )
+            let genModel = try JGenModel(containedin: self, connection: connection).retriveModelInfo()
+       //     self.meta = MetaHelper(genContainer: self)
+            Log.info("Connected to the model: \(String(describing: genModel.getName())).")
             return genModel
-        } catch  {
-             print(error)
+        } catch {
+            Log.error("Cannot connect to SQLite database")
+            throw JGenException.someProblemConnectingSQLite(description: "Cannot connect to SQLite database")
          }
-        return nil        
-    }
-    
-    ///
-    /// Returns object representing the model stored in the container
-    /// if the container is connected to the SQLite database
-    /// and contains a valid model.
-    ///
-    /// - Returns: Object representing model or `nil` if connection was unsuccessful.
-    ///
-    public func getModel() -> JGenModel? {
-        return self.genModel
-    }
-    
-    ///
-    /// Disconnects from the SQLite database. All actions on the model or
-    /// any part of the model will reject any attempt to use
-    /// any functionality of the API.
-    ///
-    public func disconnect() {
-        self.connection = nil
     }
     
     ///

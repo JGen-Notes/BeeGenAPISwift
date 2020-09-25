@@ -89,20 +89,16 @@ public class JGenObject {
     ///   - haveType: A type of association.
     ///
     /// - Returns: The array of objects associated with itself of the specified type.
-    public func findAssociationMany(haveType: AscMetaType)  -> Array<JGenObject> {
+    public func findAssociationMany(haveType: AscMetaType) throws -> Array<JGenObject> {
         var array = Array<JGenObject>()
-        do {
-           for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType.rawValue)) {
-                if try association.get(cardColumn) != Cardinality.many.rawValue {
-                    //throw GenAPIException.associationNotCardinalityMany(objid: self.id, ascType: haveType.rawValue)
-                }
-                for object in try self.connection.prepare(genObjects.where(idColumn == association.get(toObjidColumn))) {
-                    array.append(JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
-                }
-            }
-        } catch  {
-            print(error)
-        }
+        for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType.rawValue)) {
+             if try association.get(cardColumn) != Cardinality.many.rawValue {
+                 //throw GenAPIException.associationNotCardinalityMany(objid: self.id, ascType: haveType.rawValue)
+             }
+             for object in try self.connection.prepare(genObjects.where(idColumn == association.get(toObjidColumn))) {
+                 array.append(JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
+             }
+         }
          return array
     }
     
@@ -113,48 +109,18 @@ public class JGenObject {
     ///   - haveType: A type of association.
     ///
     /// - Returns: The object associated with itself of the specified type or nil if not found.
-    public func findAssociationOne(haveType: AscMetaType) -> JGenObject? {
-        do {
-            for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType.rawValue)) {
-                if try association.get(cardColumn) != Cardinality.one.rawValue {
-                    //throw GenAPIException.associationNotCardinalityOne(objid: self.id, ascType: haveType)
-                     return nil
-                }
-                for object in try self.connection.prepare(genObjects.where(idColumn == association.get(toObjidColumn))) {
-                    return JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn))
-                }
+    public func findAssociationOne(haveType: AscMetaType) throws -> JGenObject? {
+        for association in try self.connection.prepare(genAssociations.where(fromObjidColumn == self.id && ascTypeColumn == haveType.rawValue)) {
+            if try association.get(cardColumn) != Cardinality.one.rawValue {
+                //throw GenAPIException.associationNotCardinalityOne(objid: self.id, ascType: haveType)
+                 return nil
             }
-        } catch {
-            print(error)
-        }       
+            for object in try self.connection.prepare(genObjects.where(idColumn == association.get(toObjidColumn))) {
+                return JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn))
+            }
+        }
         return nil
     }
-    
-//    /// Fetching  properties of itself.
-//    ///
-//    ///
-//    /// - Returns: The array of property of itself.
-//    public func fetchProperties() throws -> Array<GenProperty> {
-//        var array = Array<GenProperty>()
-//        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id)) {
-//            array.append(GenProperty(connection: connection, objid: try property.get(objidColumn), prpType: try property.get(prpTypeColumn), prpMnemonic: try property.get(prpMnemonicColumn), format: try property.get(formatColumn), value: try property.get(valueColumn)))
-//        }
-//        return array
-//    }
-//    
-//    /// Fetching specific single property of itself.
-//    ///
-//    /// - Parameters:
-//    ///
-//    ///   - haveType: A type of property.
-//    ///
-//    /// - Returns: The spefified property of itself or nil if not found.
-//    public func fetchProperty(haveType: Int64) throws -> GenProperty? {
-//        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType)) {
-//            return GenProperty(connection: connection, objid: try property.get(objidColumn), prpType: try property.get(prpTypeColumn), prpMnemonic: try property.get(prpMnemonicColumn), format: try property.get(formatColumn), value: try property.get(valueColumn))
-//        }
-//        return nil
-//    }
     
     /// The method finds a character property of the specified type for this object.
     /// It returns `?` in case of the object for some reason does not have the property
@@ -165,17 +131,13 @@ public class JGenObject {
     ///
     /// - Returns: The value of property or `?` if not found.
     ///
-    public func findCharacterProperty(haveType: PrpMetaType) -> String {
-        do {
-            for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
-                let format = try property.get(formatColumn)
-                if format == PrpFormat.CHAR.rawValue {
-                    return try property.get(valueColumn)
-                }
+    public func findCharacterProperty(haveType: PrpMetaType) throws -> String {
+        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
+            let format = try property.get(formatColumn)
+            if format == PrpFormat.CHAR.rawValue {
+                return try property.get(valueColumn)
             }
-        } catch  {
-            print(error)
-        }        
+        }
         return "?"
     }
     
@@ -188,19 +150,15 @@ public class JGenObject {
     ///
     /// - Returns: The value of property or empty staing if not found.
     ///
-    public func findTextProperty(haveType: PrpMetaType) -> String {
-        do {
-            for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
-                let format = try property.get(formatColumn)
-                if format == PrpFormat.TEXT.rawValue ||
-                    format == PrpFormat.LOADNAME.rawValue ||
-                    format == PrpFormat.NAME.rawValue
-                    {
-                    return try property.get(valueColumn)
-                }
+    public func findTextProperty(haveType: PrpMetaType) throws -> String {
+        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
+            let format = try property.get(formatColumn)
+            if format == PrpFormat.TEXT.rawValue ||
+                format == PrpFormat.LOADNAME.rawValue ||
+                format == PrpFormat.NAME.rawValue
+                {
+                return try property.get(valueColumn)
             }
-        } catch  {
-            print(error)
         }
         return ""
     }
@@ -214,18 +172,14 @@ public class JGenObject {
     ///
     /// - Returns: The value of property or `0`if not found.
     ///
-    public func findNumberProperty(haveType: PrpMetaType) -> Int {
-        do {
-            for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
-                let format = try property.get(formatColumn)
-                if format == PrpFormat.INT.rawValue ||
-                    format == PrpFormat.SINT.rawValue
-                    {
-                        return try Int.init(property.get(valueColumn))!
-                }
+    public func findNumberProperty(haveType: PrpMetaType) throws -> Int {
+        for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
+            let format = try property.get(formatColumn)
+            if format == PrpFormat.INT.rawValue ||
+                format == PrpFormat.SINT.rawValue
+                {
+                    return try Int.init(property.get(valueColumn))!
             }
-        } catch  {
-            print(error)
         }
         return 0
     }

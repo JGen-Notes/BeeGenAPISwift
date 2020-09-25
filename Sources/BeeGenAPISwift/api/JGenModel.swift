@@ -23,8 +23,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
-
 import Foundation
 import SQLite
 
@@ -38,9 +36,9 @@ import SQLite
 ///
 public class JGenModel {
     
-    let connection: Connection
-    
-    public var genContainer: JGenContainer
+    public let connection: Connection
+    public let genContainer: JGenContainer
+    public let meta: MetaHelper
     public var name: String = ""
     public var version: String = ""
     public var schema: String = ""
@@ -66,32 +64,29 @@ public class JGenModel {
     /// - Parameters:
     ///     - genContainer:  reference to the container storing model
     ///
-    public init(containedin genContainer: JGenContainer){
-        self.connection = genContainer.connection!
+    public init(containedin genContainer: JGenContainer, connection: Connection){
+        self.connection = connection
         self.genContainer = genContainer
+        self.meta = MetaHelper(connection: connection)
     }
-    
+ 
     ///
     /// Retrives from the container the basic information about the model
     /// like name, version and schema level.
     ///
     /// - Returns: Reference to itself.
     ///
-    public func retriveModelInfo() -> JGenModel  {
-        do {
-            for entry in try self.genContainer.connection!.prepare(genModelTable) {
-                let key: String = try entry.get(keyColumn)
-                let value: String = try entry.get(valueColumn)
-                if key == "name" {
-                    name = value
-                } else  if key == "schema" {
-                    schema = value
-                } else  if key == "version" {
-                    version = value
-                }
+    public func retriveModelInfo() throws -> JGenModel  {
+        for entry in try self.connection.prepare(genModelTable) {
+            let key: String = try entry.get(keyColumn)
+            let value: String = try entry.get(valueColumn)
+            if key == "name" {
+                name = value
+            } else  if key == "schema" {
+                schema = value
+            } else  if key == "version" {
+                version = value
             }
-        } catch  {
-            print(error)
         }
         return self
     }
@@ -128,14 +123,9 @@ public class JGenModel {
     ///
     /// - Returns: Number of objects in the model.
     ///
-    public func countObjects() -> Int {
-        do {
-             let count = try self.connection.scalar(genObjects.count)
-                   return count
-        } catch {
-           print(error)
-        }
-       return -1
+    public func countObjects() throws -> Int {
+        let count = try self.connection.scalar(genObjects.count)
+        return count
     }
     
     ///
@@ -146,14 +136,9 @@ public class JGenModel {
     ///
     /// - Returns: Number of objects of the specified type in the model.
     ///
-    public func countTypeObjects(having type: ObjMetaType) -> Int {
-        do {
-            let count = try self.connection.scalar(genObjects.filter(objTypeColumn == type.rawValue).count)
-                   return count
-        } catch {
-           print(error)
-        }
-       return -1
+    public func countObjects(having type: ObjMetaType) throws -> Int {
+        let count = try self.connection.scalar(genObjects.filter(objTypeColumn == type.rawValue).count)
+        return count
     }
     
     ///
@@ -164,14 +149,9 @@ public class JGenModel {
     ///
     /// - Returns: Object having specified identifier or `null` if not found
     ///
-    public func findObjectById(haveId: Int64) -> JGenObject? {
-        do {
-            for object in try self.connection.prepare(genObjects.where(idColumn == haveId)) {
-                return JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn))
-            }
-        } catch  {
-            //throw GenAPIException.someProblemAccessingModel(description: error.localizedDescription)
-            print(error)
+    public func findObject(haveId: Int64) throws -> JGenObject? {
+        for object in try self.connection.prepare(genObjects.where(idColumn == haveId)) {
+            return JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn))
         }
         return nil
     }
@@ -184,15 +164,10 @@ public class JGenModel {
     ///
     /// - Returns: Array of objects matching the specified type.
     ///
-    public func findTypeObjects(haveType: ObjMetaType) -> Array<JGenObject> {
+    public func findObjects(haveType: ObjMetaType) throws -> Array<JGenObject> {
         var array = Array<JGenObject>()
-        do {
-            for object in try self.connection.prepare(genObjects.where(objTypeColumn == haveType.rawValue)) {
-                array.append(JGenObject(connection: self.connection,id: try object.get(idColumn), objType: try  object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
-            }
-        } catch  {
-            //throw GenAPIException.someProblemAccessingModel(description: error.localizedDescription)
-            print(error)
+        for object in try self.connection.prepare(genObjects.where(objTypeColumn == haveType.rawValue)) {
+            array.append(JGenObject(connection: self.connection,id: try object.get(idColumn), objType: try  object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
         }
         return array
     }
@@ -207,20 +182,13 @@ public class JGenModel {
     ///
     /// - Returns: Array of objects matching the specified type, property type, and speficfied name.
     ///
-    public func findNamedObjects(havetype: ObjMetaType, haveTypePrp: PrpMetaType, havename: String) -> Array<JGenObject> {
+    public func findObjects(havetype: ObjMetaType, haveTypePrp: PrpMetaType, havename: String) throws -> Array<JGenObject> {
         var array = Array<JGenObject>()
-        do {
-            // TODO
-            for object in try self.connection.prepare(genObjects.where(objTypeColumn == havetype.rawValue && nameColumn == havename)) {
-                array.append(JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
-            }
-        } catch  {
-            //throw GenAPIException.someProblemAccessingModel(description: error.localizedDescription)
-            print(error)
+        // TODO
+        for object in try self.connection.prepare(genObjects.where(objTypeColumn == havetype.rawValue && nameColumn == havename)) {
+            array.append(JGenObject(connection: self.connection, id: try object.get(idColumn), objType: try object.get(objTypeColumn), objMnemonic: try object.get(objMnemonicColumn), name: try object.get(nameColumn)))
         }
         return array
     }
-    
-    
     
 }

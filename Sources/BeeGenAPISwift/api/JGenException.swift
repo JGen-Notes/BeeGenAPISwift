@@ -28,6 +28,7 @@ import SQLite
 
  public enum JGenException : Error {
      
+     case someProblemConnectingSQLite(description: String)
      case someProblemAccessingModel(description: String)
      case unexpectedDublicateFound(objid: Int64, objType: ObjMetaType, name: String)
      case associationNotCardinalityOne(objid: Int64, ascType: Int64)

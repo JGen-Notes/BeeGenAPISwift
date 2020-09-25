@@ -29,59 +29,68 @@ final class BeeGenAPITests: XCTestCase {
     let version = "0.5"
     let schema = "9.2.A6"
     
-    func testSampleApplication() {
+    func testSampleApplication() throws {
         let containerPath = "/Users/marek/beegen01.ief/bee/BEEGEN01.db"
         let genContainer = JGenContainer()
-        let genModel = genContainer.connect(to: containerPath)
-        print("List of action blocks in the model: " + genModel!.getName() + ", Using schema level: "
-                + genModel!.getSchema() + "\n")
-        for genObject in genModel!.findTypeObjects(haveType: ObjMetaType.ACBLKBSD) {
-            print("\tAction block name: " + genObject.findTextProperty(haveType: PrpMetaType.NAME) + ", having id: \(genObject.id)"
+        let genModel = try genContainer.connect(to: containerPath)
+        print("List of action blocks in the model: " + genModel.getName() + ", Using schema level: "
+                + genModel.getSchema() + "\n")
+        for genObject in try genModel.findObjects(haveType: ObjMetaType.ACBLKBSD) {
+            print("\tAction block name: \(try! genObject.findTextProperty(haveType: PrpMetaType.NAME) ), having id: \(genObject.id)"
             )
         }
-        genContainer.disconnect();
+      //  genContainer.disconnect();
         print("\nCompleted.");
     }
     
-    func testContainer() {
+    func testContainerConnection() {
+        do {
+            let genContainer = JGenContainer()
+            let _ = try genContainer.connect(to: containerPath)
+        } catch let error as JGenException {
+            print(error)
+        } catch  {
+            print(error)
+        }
+    }
+
+    
+    func testContainer() throws {
         let genContainer = JGenContainer()
-        let genModel = genContainer.connect(to: containerPath)
-        assert(genContainer.getModel() === genModel)
-        assert(genContainer.getModel()?.name == genModel?.name)
-        assert(genModel !== nil)
+        let genModel = try genContainer.connect(to: containerPath)
         assert(genContainer.getContainerLocation() == containerPath)
-        assert(genModel?.name == "BEEGEN01")
-        assert(genModel?.version == version)
-        assert(genModel?.schema == schema)
+        assert(genModel.name == "BEEGEN01")
+        assert(genModel.version == version)
+        assert(genModel.schema == schema)
     }
     
-    func testModel() {
+    func testModel() throws {
         let genContainer = JGenContainer()
-        let genModel = genContainer.connect(to: containerPath)
+        let genModel = try! genContainer.connect(to: containerPath)
         //print(genModel!.countObjects())
-        assert(genModel!.countObjects() == 1228)
+        assert(try! genModel.countObjects() == 1228)
         //print(genModel!.countTypeObjects(having: ObjMetaType.ACBLKBSD))
-        assert(genModel!.countTypeObjects(having: ObjMetaType.ACBLKBSD) == 5)
+        assert(try! genModel.countObjects(having: ObjMetaType.ACBLKBSD) == 5)
         //print(genModel!.findObjectById(haveId: 22020096)?.name)
-        assert(genModel!.findObjectById(haveId: 22020096)?.name == "PERSON_CREATE")
+        assert(try! genModel.findObject(haveId: 22020096)?.name == "PERSON_CREATE")
         //print(genModel!.findTypeObjects(haveType: ObjMetaType.ACBLKBSD.rawValue).count)
-        assert(genModel!.findTypeObjects(haveType: ObjMetaType.ACBLKBSD).count == 5)
+        assert(try! genModel.findObjects(haveType: ObjMetaType.ACBLKBSD).count == 5)
         //print(genModel!.findNamedObjects(havetype: ObjMetaType.ACBLKBSD.rawValue, haveTypePrp: PrpMetaType.NAME.rawValue, havename: "PERSON_CREATE").count)
-        assert(genModel!.findNamedObjects(havetype: ObjMetaType.ACBLKBSD, haveTypePrp: PrpMetaType.NAME, havename: "PERSON_CREATE").count == 1)
+        assert(try! genModel.findObjects(havetype: ObjMetaType.ACBLKBSD, haveTypePrp: PrpMetaType.NAME, havename: "PERSON_CREATE").count == 1)
     }
     
-    func testObject() {
+    func testObject() throws {
         let genContainer = JGenContainer()
-        let genModel = genContainer.connect(to: containerPath)
-        let genObject = genModel?.findObjectById(haveId: 22020096)
+        let genModel = try genContainer.connect(to: containerPath)
+        let genObject = try genModel.findObject(haveId: 22020096)
         //print(genObject!.findCharacterProperty(haveType: PrpMetaType.PASSGLOB))
-        assert(genObject!.findCharacterProperty(haveType: PrpMetaType.PASSGLOB) == "M")
+        assert(try! genObject!.findCharacterProperty(haveType: PrpMetaType.PASSGLOB) == "M")
         //print(genObject!.findTextProperty(haveType: PrpMetaType.NAME))
-        assert(genObject!.findTextProperty(haveType: PrpMetaType.NAME) == "PERSON_CREATE")
+        assert(try! genObject!.findTextProperty(haveType: PrpMetaType.NAME) == "PERSON_CREATE")
         //print(genObject!.findNumberProperty(haveType: PrpMetaType.OPCODE))
-        assert(genObject!.findNumberProperty(haveType: PrpMetaType.OPCODE) == 21)
+        assert(try! genObject!.findNumberProperty(haveType: PrpMetaType.OPCODE) == 21)
         //print(genObject!.findNumberProperty(haveType: PrpMetaType.CEID))
-        assert(genObject!.findNumberProperty(haveType: PrpMetaType.CEID) == 1049)
+        assert(try! genObject!.findNumberProperty(haveType: PrpMetaType.CEID) == 1049)
         let array = try genObject!.findAssociationMany(haveType: AscMetaType.USESEXST)
         //        for obj in array {
         //            print("\(obj.id)" + " " + obj.objMnemonic)
@@ -94,37 +103,38 @@ final class BeeGenAPITests: XCTestCase {
         assert(obj!.objMnemonic == "IMPLGIC")
     }
     
-    func testMeta() {
+    func testMeta() throws {
         let genContainer = JGenContainer()
-        _ = genContainer.connect(to: containerPath)
-        let meta = genContainer.meta
+        let genModel = try genContainer.connect(to: containerPath)
+        let meta = genModel.meta
 
-        assert(meta?.getDefaultCharProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.CONIND) == "N")
+        assert(meta.getDefaultCharProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.CONIND) == "N")
 
-        assert(meta?.getDefaultTextProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.DESC) == "")
+        assert(meta.getDefaultTextProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.DESC) == "")
 
-        assert(meta?.getDefaultNumberProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.CEID) == 0)
+        assert(meta.getDefaultNumberProperty(hasObjType: ObjMetaType.ACBLKBSD, hasPrpType: PrpMetaType.CEID) == 0)
    
-        assert(meta!.getAssociationCodes(hasObjType: ObjMetaType.ACBLKBSD).count == 61)
+        assert(meta.getAssociationCodes(hasObjType: ObjMetaType.ACBLKBSD).count == 61)
         
-        assert(meta!.getPropertyCodes(hasObjType: ObjMetaType.ACBLKBSD).count == 46)
+        assert(meta.getPropertyCodes(hasObjType: ObjMetaType.ACBLKBSD).count == 46)
 
-        assert(meta!.isAssociationOnetoOne(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.SPWNDFM) == true)
+        assert(meta.isAssociationOnetoOne(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.SPWNDFM) == true)
         
-        assert(meta!.isAssociationOnetoOne(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.ISINVKED) == false)
+        assert(meta.isAssociationOnetoOne(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.ISINVKED) == false)
         
-        assert(meta!.isAssociationForward(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.DEFINES) == false)
+        assert(meta.isAssociationForward(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.DEFINES) == false)
         
-        assert(meta!.isAssociationOptional(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.HASART) == true)
+        assert(meta.isAssociationOptional(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.HASART) == true)
         
-        assert(meta!.isAssociationOrdered(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.DEFINES) == false)
+        assert(meta.isAssociationOrdered(hasObjType: ObjMetaType.ACBLKBSD, hasAscType: AscMetaType.DEFINES) == false)
     }
  
     static var allTests = [
+        ("testContainerConnection", testContainerConnection),
         ("testContainer", testContainer),
         ("testModel", testModel),
         ("testObject", testObject),
-         ("testMeta", testMeta),
+        ("testMeta", testMeta),
         ("testSampleApplication", testSampleApplication),
     ]
 }

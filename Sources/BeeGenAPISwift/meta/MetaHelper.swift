@@ -37,7 +37,7 @@ public class MetaHelper {
 
     let connection: Connection
     
-    public let genContainer: JGenContainer
+    //public let genContainer: JGenContainer
     
     /// Create table definition for GenMetaProperties
     let genMetaProperties = Table("GenMetaProperties")
@@ -61,9 +61,8 @@ public class MetaHelper {
     let cardColumn = Expression<String>("card")
     let orderedColumn = Expression<String>("ordered")
     
-    public init(genContainer: JGenContainer) {
-        self.connection = genContainer.connection!
-        self.genContainer = genContainer
+    public init(connection: Connection) {
+        self.connection = connection
     }
     
     public func getDefaultCharProperty(hasObjType: ObjMetaType, hasPrpType: PrpMetaType) -> String {
