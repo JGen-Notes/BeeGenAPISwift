@@ -46,7 +46,7 @@ public class MetaHelper {
     let prpMnemonicColumn = Expression<String>("prpMnemonic")
     let formatColumn = Expression<String>("format")
     let lengthColumn = Expression<Int64>("length")
-    let defaultNumberColumn = Expression<Int64>("defaultInt")
+    let defaultNumberColumn = Expression<Int>("defaultInt")
     let defaultTextColumn = Expression<String>("defaultText")
     let defaultCharColumn = Expression<String>("defaultChar")
     
@@ -73,7 +73,7 @@ public class MetaHelper {
         } catch {
             print(error)
         }
-        return ""
+        return " "
     }
     
     public func getDefaultTextProperty(hasObjType: ObjMetaType, hasPrpType: PrpMetaType) -> String {
@@ -87,7 +87,7 @@ public class MetaHelper {
         return ""
     }
     
-    public func getDefaultNumberProperty(hasObjType: ObjMetaType, hasPrpType: PrpMetaType) -> Int64 {
+    public func getDefaultNumberProperty(hasObjType: ObjMetaType, hasPrpType: PrpMetaType) -> Int {
         do {
             for property in try self.connection.prepare(genMetaProperties.where(objTypeColumn == hasObjType.rawValue && prpTypeColumn == hasPrpType.rawValue)) {
                 return try property.get(defaultNumberColumn)

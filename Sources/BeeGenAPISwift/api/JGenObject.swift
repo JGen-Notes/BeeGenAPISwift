@@ -135,7 +135,7 @@ public class JGenObject {
     /// - Returns: The value of property or `?` if not found.
     ///
     public func findCharacterProperty(haveType: PrpMetaType) throws -> String {
-        let character = metaHelper.defaultCharColumn(hasObjType: objType, hasPrpType: haveType)
+        let character = metaHelper.getDefaultCharProperty(hasObjType: ObjMetaType.init(rawValue: objType)!, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.CHAR.rawValue {
@@ -155,7 +155,8 @@ public class JGenObject {
     /// - Returns: The value of property or empty staing if not found.
     ///
     public func findTextProperty(haveType: PrpMetaType) throws -> String {
-        let text = metaHelper.defaultTextColumn(hasObjType: objType, hasPrpType: haveType)
+        
+        let text = metaHelper.getDefaultTextProperty(hasObjType: ObjMetaType.init(rawValue: objType)!, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.TEXT.rawValue ||
@@ -178,7 +179,7 @@ public class JGenObject {
     /// - Returns: The value of property or `0`if not found.
     ///
     public func findNumberProperty(haveType: PrpMetaType) throws -> Int {
-        let number = metaHelper.defaultNumberColumn(hasObjType: objType, hasPrpType: haveType)
+        let number = metaHelper.getDefaultNumberProperty(hasObjType: ObjMetaType.init(rawValue: objType)!, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.INT.rawValue ||
@@ -189,4 +190,11 @@ public class JGenObject {
         }
         return number
     }
+}
+
+public enum Cardinality: String {
+    
+    case many = "M"
+    case one = "1"
+    
 }
