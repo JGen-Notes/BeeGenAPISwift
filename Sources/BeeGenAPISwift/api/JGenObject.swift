@@ -48,6 +48,8 @@ public class JGenObject {
     public let objMnemonic: String
     public let name: String
     
+    private let metaHelper: MetaHelper
+    
     /// Create table definition for GenObject
     let genObjects = Table("GenObjects")
     let idColumn = Expression<Int64>("id")
@@ -80,6 +82,7 @@ public class JGenObject {
          self.objType = objType
          self.objMnemonic = objMnemonic
          self.name = name
+         self.metaHelper = MetaHelper(connection: connection)
      }
     
     /// Fetching associated objects associated with the itself.
@@ -132,13 +135,14 @@ public class JGenObject {
     /// - Returns: The value of property or `?` if not found.
     ///
     public func findCharacterProperty(haveType: PrpMetaType) throws -> String {
+        let character = metaHelper.defaultCharColumn(hasObjType: objType, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.CHAR.rawValue {
                 return try property.get(valueColumn)
             }
         }
-        return "?"
+        return character
     }
     
     /// The method finds a text property of the specified type for this object.
@@ -151,6 +155,7 @@ public class JGenObject {
     /// - Returns: The value of property or empty staing if not found.
     ///
     public func findTextProperty(haveType: PrpMetaType) throws -> String {
+        let text = metaHelper.defaultTextColumn(hasObjType: objType, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.TEXT.rawValue ||
@@ -160,7 +165,7 @@ public class JGenObject {
                 return try property.get(valueColumn)
             }
         }
-        return ""
+        return text
     }
     
     /// The method finds a number property of the specified type for this object.
@@ -173,6 +178,7 @@ public class JGenObject {
     /// - Returns: The value of property or `0`if not found.
     ///
     public func findNumberProperty(haveType: PrpMetaType) throws -> Int {
+        let number = metaHelper.defaultNumberColumn(hasObjType: objType, hasPrpType: haveType)
         for property in try self.connection.prepare(genProperties.where(objidColumn == self.id && prpTypeColumn == haveType.rawValue)) {
             let format = try property.get(formatColumn)
             if format == PrpFormat.INT.rawValue ||
@@ -181,6 +187,6 @@ public class JGenObject {
                     return try Int.init(property.get(valueColumn))!
             }
         }
-        return 0
+        return number
     }
 }
